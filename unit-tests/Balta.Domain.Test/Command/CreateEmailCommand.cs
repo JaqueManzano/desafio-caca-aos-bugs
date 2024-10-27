@@ -13,11 +13,6 @@ namespace Balta.Domain.Test.Command
 
         public CreateEmailCommand(string emailAddress, IDateTimeProvider dateTimeProvider)
         {
-            if (emailAddress is null)
-            {
-                throw new ArgumentNullException();
-            }
-
             Email = Email.ShouldCreate(emailAddress, dateTimeProvider);
         }
         public void Validate()

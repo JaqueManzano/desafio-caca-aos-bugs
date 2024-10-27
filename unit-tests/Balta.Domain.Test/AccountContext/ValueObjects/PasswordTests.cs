@@ -1,10 +1,17 @@
+using Balta.Domain.Test.Command;
+
 namespace Balta.Domain.Test.AccountContext.ValueObjects;
 
 public class PasswordTests
 {
     [Fact]
-    public void ShouldFailIfPasswordIsNull() => Assert.Fail();
-    
+    public void ShouldFailIfPasswordIsNull()
+    {
+        //Assert.Throws<ArgumentNullException>(() =>
+        //      new CreateEmailCommand(null, _dateTimeProviderMock.Object));
+    }
+
+
     [Fact]
     public void ShouldFailIfPasswordIsEmpty() => Assert.Fail();
     

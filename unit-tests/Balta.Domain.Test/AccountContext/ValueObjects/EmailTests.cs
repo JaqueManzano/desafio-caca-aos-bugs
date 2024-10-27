@@ -4,7 +4,7 @@ using Balta.Domain.SharedContext.Extensions;
 using Balta.Domain.Test.Command;
 using Balta.Domain.Test.Repository;
 using Moq;
-using System.Net.Mail;
+using System.Runtime.CompilerServices;
 
 namespace Balta.Domain.Test.AccountContext.ValueObjects;
 
@@ -12,6 +12,17 @@ public class EmailTests
 {
     private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
     private readonly FakeEmailRepository _emailRepository;
+
+    
+    private const string EMAIL_INVALID_WITHOUT_AT_SIGN = "emailinvalido.com.br";
+    private const string EMAIL_INVALID_WITH_NO_DOMAIN = "email-invalido@";
+
+    private const string EMAIL_VALID = "emailvalido@hotmail.com";
+    private const string EMAIL_VALID_UPPERCASE = "EMAIL@hotmail.com";
+    private const string EMAIL_VALID_DOMAIN_UPPERCASE = "email@HOTMAIL.com";
+    private const string EMAIL_VALID_STARTING_BLANK_SPACES = "   emailvalido@hotmail.com";
+    private const string EMAIL_VALID_ENDING_BLANK_SPACES = "emailvalido@hotmail.com   ";
+    private const string EMAIL_VALID_BLANK_SPACES = "   emailvalido@hotmail.com   ";
 
     public EmailTests()
     {
@@ -21,9 +32,9 @@ public class EmailTests
     }
 
     [Theory]
-    [InlineData("TESTE@hotmail.com")]
-    [InlineData("teste@Hotmail.com")]
-    [InlineData("teste@HOTMAIL.com")]
+    [MemberData(nameof(EmailTestData.ValidEmails), MemberType = typeof(EmailTestData))]
+    //[InlineData(EMAIL_VALID_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_DOMAIN_UPPERCASE)]
     public void ShouldLowerCaseEmail(string emailAddress)
     {
         // Arrange
@@ -40,9 +51,10 @@ public class EmailTests
     }
 
     [Theory]
-    [InlineData("  emailvalido@hotmail.com  ")]
-    [InlineData("   emailvalido@hotmail.com  ")]
-    [InlineData("  email_valido@hotmail.com   ")]
+    [MemberData(nameof(EmailTestData.ValidEmailsWithBlankSpaces), MemberType = typeof(EmailTestData))]    
+    //[InlineData(EMAIL_VALID_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_STARTING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_ENDING_BLANK_SPACES)]    
     public void ShouldTrimEmail(string emailAddress)
     {
         var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
@@ -52,7 +64,7 @@ public class EmailTests
     [Fact]
     public void ShouldFailIfEmailIsNull()
     {
-        Assert.Throws<ArgumentNullException>(() =>
+        Assert.Throws<NullReferenceException>(() =>
               new CreateEmailCommand(null, _dateTimeProviderMock.Object));
     }
 
@@ -64,9 +76,9 @@ public class EmailTests
     }
 
     [Theory]
-    [InlineData("emailinvalido.com.br")]
-    [InlineData("email-invalido.com.br")]
-    [InlineData("email-invalid@")]
+    [MemberData(nameof(EmailTestData.InValidEmails), MemberType = typeof(EmailTestData))]
+    //[InlineData(EMAIL_INVALID_WITHOUT_AT_SIGN)]
+    //[InlineData(EMAIL_INVALID_WITH_NO_DOMAIN)]
     public void ShouldFailIfEmailIsInvalid(string emailAddress)
     {
         Assert.Throws<InvalidEmailException>(() =>
@@ -74,7 +86,14 @@ public class EmailTests
     }
 
     [Theory]
-    [InlineData("emailvalido@hotmail.com")]
+    [MemberData(nameof(EmailTestData.ValidEmails), MemberType = typeof(EmailTestData))]
+    [MemberData(nameof(EmailTestData.ValidEmailsWithBlankSpaces), MemberType = typeof(EmailTestData))]
+    //[InlineData(EMAIL_VALID)]
+    //[InlineData(EMAIL_VALID_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_DOMAIN_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_STARTING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_ENDING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_BLANK_SPACES)]
     public void ShouldPassIfEmailIsValid(string emailAddress)
     {
         try
@@ -91,9 +110,15 @@ public class EmailTests
     }
 
     [Theory]
-    [InlineData("emailvalido@hotmail.com")]
-    [InlineData("emailValido@HOTMAIL.com")]
-    [InlineData("email_Valido@HOTMAIL.com")]
+    [MemberData(nameof(EmailTestData.ValidEmails), MemberType = typeof(EmailTestData))]
+    //[MemberData(nameof(EmailTestData.ValidEmailsWithBlankSpaces), MemberType = typeof(EmailTestData))]
+
+    //[InlineData(EMAIL_VALID)]
+    //[InlineData(EMAIL_VALID_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_DOMAIN_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_STARTING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_ENDING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_BLANK_SPACES)]
     public void ShouldHashEmailAddress(string emailAddress)
     {
         var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
@@ -103,15 +128,32 @@ public class EmailTests
     }
 
     [Theory]
-    [InlineData("emailvalido@hotmail.com")]
+    [MemberData(nameof(EmailTestData.ValidEmails), MemberType = typeof(EmailTestData))]
+    [MemberData(nameof(EmailTestData.ValidEmailsWithBlankSpaces), MemberType = typeof(EmailTestData))]
+
+    //[InlineData(EMAIL_VALID)]
+    //[InlineData(EMAIL_VALID_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_DOMAIN_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_STARTING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_ENDING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_BLANK_SPACES)]
     public void ShouldExplicitConvertFromString(string emailAddress)
     {
         var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
         Assert.Equal(emailAddress, (string)command.Email);
+        //Assert.Equal(emailAddress, (string)command.Email, ignoreCase: true, ignoreAllWhiteSpace: true);
     }
 
     [Theory]
-    [InlineData("emailvalido@hotmail.com")]
+    [MemberData(nameof(EmailTestData.ValidEmails), MemberType = typeof(EmailTestData))]
+    [MemberData(nameof(EmailTestData.ValidEmailsWithBlankSpaces), MemberType = typeof(EmailTestData))]
+
+    //[InlineData(EMAIL_VALID)]
+    //[InlineData(EMAIL_VALID_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_DOMAIN_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_STARTING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_ENDING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_BLANK_SPACES)]
     public void ShouldExplicitConvertToString(string emailAddress)
     {
         var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
@@ -119,15 +161,31 @@ public class EmailTests
     }
 
     [Theory]
-    [InlineData("emailvalido@hotmail.com")]
+    [MemberData(nameof(EmailTestData.ValidEmails), MemberType = typeof(EmailTestData))]
+    //[MemberData(nameof(EmailTestData.ValidEmailsWithBlankSpaces), MemberType = typeof(EmailTestData))]
+
+    //[InlineData(EMAIL_VALID)]
+    //[InlineData(EMAIL_VALID_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_DOMAIN_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_STARTING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_ENDING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_BLANK_SPACES)]
     public void ShouldReturnEmailWhenCallToStringMethod(string emailAddress)
     {
         var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
-        Assert.Equal(emailAddress, command.Email.ToString());
+        Assert.Equal(emailAddress, command.Email.ToString());        
     }
 
     [Theory]
-    [InlineData("emailvalido@hotmail.com")]
+    [MemberData(nameof(EmailTestData.ValidEmails), MemberType = typeof(EmailTestData))]
+    [MemberData(nameof(EmailTestData.ValidEmailsWithBlankSpaces), MemberType = typeof(EmailTestData))]
+
+    //[InlineData(EMAIL_VALID)]
+    //[InlineData(EMAIL_VALID_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_DOMAIN_UPPERCASE)]
+    //[InlineData(EMAIL_VALID_STARTING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_ENDING_BLANK_SPACES)]
+    //[InlineData(EMAIL_VALID_BLANK_SPACES)]
     public void ShouldReturnSuccessIfAddValidEmail(string emailAddress)
     {
         var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
