@@ -1,98 +1,158 @@
+using Balta.Domain.AccountContext.ValueObjects.Exceptions;
+using Balta.Domain.SharedContext.Abstractions;
+using Balta.Domain.SharedContext.Extensions;
 using Balta.Domain.Test.Command;
 using Balta.Domain.Test.Repository;
+using Moq;
+using System.Net.Mail;
 
 namespace Balta.Domain.Test.AccountContext.ValueObjects;
 
 public class EmailTests
 {
-    private FakeEmailRepository _emailRepository;
+    private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
+    private readonly FakeEmailRepository _emailRepository;
 
     public EmailTests()
     {
         _emailRepository = new FakeEmailRepository();
+        _dateTimeProviderMock = new Mock<IDateTimeProvider>();
+        _dateTimeProviderMock.Setup(x => x.UtcNow).Returns(DateTime.UtcNow);
     }
 
     [Theory]
-    [InlineData("teste@hotmail.com", true)]
-    [InlineData("teste@Hotmail.com", false)]
-    [InlineData("TESTE@hotmail.com", false)]
-    public void ShouldLowerCaseEmail(string param, bool isTrue)
+    [InlineData("TESTE@hotmail.com")]
+    [InlineData("teste@Hotmail.com")]
+    [InlineData("teste@HOTMAIL.com")]
+    public void ShouldLowerCaseEmail(string emailAddress)
     {
-        var command = new CreateEmailCommand(param);
+        // Arrange
+        var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
         command.Validate();
 
-        bool isLowerCase = command.email == command.email.ToLower();
-        Assert.Equal(isLowerCase, isTrue);
+        // Act
+        var email = command.Email;
+        string expectedLowerCaseEmail = emailAddress.ToLower();
+
+        // Assert
+        Assert.True(command.IsValid);
+        Assert.Equal(expectedLowerCaseEmail, email.Address);
     }
 
-    [Fact]
-    public void ShouldTrimEmail() => Assert.Fail();
+    [Theory]
+    [InlineData("  emailvalido@hotmail.com  ")]
+    [InlineData("   emailvalido@hotmail.com  ")]
+    [InlineData("  email_valido@hotmail.com   ")]
+    public void ShouldTrimEmail(string emailAddress)
+    {
+        var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
+        Assert.Equal(emailAddress.Trim(), command.Email.Address);
+    }
 
     [Fact]
     public void ShouldFailIfEmailIsNull()
     {
-        var command = new CreateEmailCommand(null);
-        command.Validate();
-
-        Assert.False(command.IsValid);
+        Assert.Throws<ArgumentNullException>(() =>
+              new CreateEmailCommand(null, _dateTimeProviderMock.Object));
     }
 
     [Fact]
     public void ShouldFailIfEmailIsEmpty()
     {
-        var command = new CreateEmailCommand(string.Empty);
-        command.Validate();
-
-        Assert.False(command.IsValid);
+        Assert.Throws<InvalidEmailException>(() =>
+        new CreateEmailCommand(string.Empty, _dateTimeProviderMock.Object));
     }
-
-    [Fact]
-    public void ShouldFailIfEmailIsInvalid() => Assert.Fail();
-
-    [Fact]
-    public void ShouldPassIfEmailIsValid() => Assert.Fail();
-
-    [Fact]
-    public void ShouldHashEmailAddress() => Assert.Fail();
-
-    [Fact]
-    public void ShouldExplicitConvertFromString() => Assert.Fail();
-
-    [Fact]
-    public void ShouldExplicitConvertToString() => Assert.Fail();
 
     [Theory]
-    [InlineData("teste@hotmail.com")]
-    public void ShouldReturnEmailWhenCallToStringMethod(string email)
+    [InlineData("emailinvalido.com.br")]
+    [InlineData("email-invalido.com.br")]
+    [InlineData("email-invalid@")]
+    public void ShouldFailIfEmailIsInvalid(string emailAddress)
     {
-        var command = new CreateEmailCommand(email);
-        Assert.Equal(email, command.ToString());
+        Assert.Throws<InvalidEmailException>(() =>
+            new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object));
     }
 
-    [Fact]
-    public void ShouldReturnSuccessIfAddValidEmail()
+    [Theory]
+    [InlineData("emailvalido@hotmail.com")]
+    public void ShouldPassIfEmailIsValid(string emailAddress)
     {
-        var command = new CreateEmailCommand("jaque@hotmail.com");
+        try
+        {
+            var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
+            command.Validate();
+        }
+        catch (InvalidEmailException)
+        {
+            Assert.True(false);
+        }
+
+        Assert.True(true);
+    }
+
+    [Theory]
+    [InlineData("emailvalido@hotmail.com")]
+    [InlineData("emailValido@HOTMAIL.com")]
+    [InlineData("email_Valido@HOTMAIL.com")]
+    public void ShouldHashEmailAddress(string emailAddress)
+    {
+        var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
+        string expectedHash = emailAddress.ToLower().ToBase64();
+
+        Assert.Equal(command.Email.Hash, expectedHash);
+    }
+
+    [Theory]
+    [InlineData("emailvalido@hotmail.com")]
+    public void ShouldExplicitConvertFromString(string emailAddress)
+    {
+        var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
+        Assert.Equal(emailAddress, (string)command.Email);
+    }
+
+    [Theory]
+    [InlineData("emailvalido@hotmail.com")]
+    public void ShouldExplicitConvertToString(string emailAddress)
+    {
+        var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
+        Assert.Equal(emailAddress, command.Email.ToString());
+    }
+
+    [Theory]
+    [InlineData("emailvalido@hotmail.com")]
+    public void ShouldReturnEmailWhenCallToStringMethod(string emailAddress)
+    {
+        var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
+        Assert.Equal(emailAddress, command.Email.ToString());
+    }
+
+    [Theory]
+    [InlineData("emailvalido@hotmail.com")]
+    public void ShouldReturnSuccessIfAddValidEmail(string emailAddress)
+    {
+        var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
         command.Validate();
 
         if (command.IsValid)
-            _emailRepository.AddEmail(command.email);
+            _emailRepository.AddEmail(command.Email);
 
-        string? emailAdded = _emailRepository.Get(command.email);
+        string? emailAdded = _emailRepository.Get(command.Email);
         Assert.NotNull(emailAdded);
     }
 
-    [Fact]
-    public void ShouldReturnFalseWhenTryAddingExistingEmail()
+
+    [Theory]
+    [InlineData("emailvalido@hotmail.com")]
+    public void ShouldReturnFalseWhenTryAddingExistingEmail(string emailAddress)
     {
-        var command = new CreateEmailCommand("jaque@hotmail.com");
+        var command = new CreateEmailCommand(emailAddress, _dateTimeProviderMock.Object);
         command.Validate();
         bool addedAgain = false;
 
         if (command.IsValid)
         {
-            _emailRepository.AddEmail(command.email);
-            addedAgain = _emailRepository.AddEmail(command.email);
+            _emailRepository.AddEmail(command.Email);
+            addedAgain = _emailRepository.AddEmail(command.Email);
         }
 
         Assert.False(addedAgain);

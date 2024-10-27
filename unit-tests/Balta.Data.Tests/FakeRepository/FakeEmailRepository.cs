@@ -2,7 +2,7 @@
 
 namespace Balta.Domain.Test.Repository
 {
-    public class FakeEmailRepository : IEmailRepository
+    public class FakeEmailRepository : IFakeEmailRepository
     {
         private readonly List<string> _emails = new List<string>();
 
