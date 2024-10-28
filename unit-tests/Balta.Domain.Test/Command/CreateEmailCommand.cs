@@ -1,6 +1,5 @@
 ﻿using Balta.Domain.AccountContext.ValueObjects;
 using Balta.Domain.SharedContext.Abstractions;
-using Balta.Domain.StoreContext.Entities;
 using Balta.Domain.Test.Command.Interface;
 using Flunt.Notifications;
 using Flunt.Validations;
