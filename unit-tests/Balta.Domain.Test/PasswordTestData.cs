@@ -7,6 +7,8 @@ namespace Balta.Domain.Test
         public static IEnumerable<object[]> ValidPasswords =>
             new List<object[]> {
                 new object[] { Password.ShouldGenerate(45) },
+                new object[] { Password.ShouldGenerate(8) },
+                new object[] { Password.ShouldGenerate(16) },
             };
 
         public static IEnumerable<object[]> PasswordLenIsGreaterThanMaxChars =>

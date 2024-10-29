@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using Balta.Domain.AccountContext.ValueObjects.Exceptions;
 using Balta.Domain.SharedContext.ValueObjects;
 
@@ -52,12 +53,26 @@ public record Password : ValueObject
     #region Properties
 
     public string Hash { get; }
-    public DateTime? ExpiresAtUtc { get; }
-    public bool MustChange { get; }
+    public DateTime? ExpiresAtUtc { get; private set; }
+    public bool MustChange { get; private set; }
 
     #endregion
 
     #region Public Methods
+    public bool IsPasswordExpired()
+    {
+        return DateTime.UtcNow >= ExpiresAtUtc;
+    }
+
+    public void SetNewExpiresAtUtc(DateTime? dateTime)
+    { 
+        ExpiresAtUtc = dateTime; 
+    }
+
+    public void SetMustChange()
+    {
+        MustChange = true;
+    }
 
     public static string ShouldGenerate(
         short length = 16,
@@ -69,11 +84,18 @@ public record Password : ValueObject
         var index = 0;
         var res = new char[length];
         var rnd = new Random();
+                
+        if (!upperCase) 
+        {
+            res[0] = chars[rnd.Next(0, 26)];
+            res[1] = chars[rnd.Next(26, 52)];
+            index = 2;
+        }
 
         while (index < length)
             res[index++] = chars[rnd.Next(startRandom, chars.Length)];
-
-        return new string(res);
+                
+        return new string(res.OrderBy(_ => rnd.Next()).ToArray());
     }
 
     public static bool ShouldMatch(
@@ -106,6 +128,27 @@ public record Password : ValueObject
         return keyToCheck.SequenceEqual(key);
     }
 
+    public static bool IsStrongPassword(string password)
+    {
+        if (string.IsNullOrEmpty(password) || password.Length < 8)
+            return false;
+
+        bool hasUpperCase = password.Any(char.IsUpper);
+        bool hasLowerCase = password.Any(char.IsLower);
+        bool hasDigit = password.Any(char.IsDigit);
+        bool hasSpecialChar = Regex.IsMatch(password, @"[\W_]");
+
+        if (!hasUpperCase || !hasLowerCase || !hasDigit || !hasSpecialChar)
+            return false;
+
+        for (int i = 0; i < password.Length - 1; i++)
+        {
+            if (password[i] + 1 == password[i + 1] || password[i] - 1 == password[i + 1])
+                return false;
+        }
+
+        return true;
+    }
     #endregion
 
     #region Private Methods

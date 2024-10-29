@@ -56,23 +56,62 @@ public class PasswordTests
     }
 
     [Fact]
-    public void ShouldGenerateStrongPassword() => Assert.Fail();
+    public void ShouldGenerateStrongPassword()
+    {        
+        Password password = Password.ShouldGenerate(upperCase:false);
+        Assert.True(Password.IsStrongPassword(password));
+    }
 
-    [Fact]
-    public void ShouldImplicitConvertToString() => Assert.Fail();
+    [Theory]
+    [MemberData(nameof(PasswordTestData.ValidPasswords), MemberType = typeof(PasswordTestData))]
+    public void ShouldImplicitConvertToString(string plainText) 
+    {
+        Password password = Password.ShouldCreate(plainText);
+        string implicitConv = password;
+        Assert.Equal(implicitConv, password.Hash);
+    }
 
-    [Fact]
-    public void ShouldReturnHashAsStringWhenCallToStringMethod() => Assert.Fail();
+    [Theory]
+    [MemberData(nameof(PasswordTestData.ValidPasswords), MemberType = typeof(PasswordTestData))]
+    public void ShouldReturnHashAsStringWhenCallToStringMethod(string plainText)
+    {
+        Password password = Password.ShouldCreate(plainText);
+        Assert.Equal(password.Hash, password.ToString());
+    }
 
-    [Fact]
-    public void ShouldMarkPasswordAsExpired() => Assert.Fail();
+    [Theory]
+    [MemberData(nameof(PasswordTestData.ValidPasswords), MemberType = typeof(PasswordTestData))]
+    public void ShouldMarkPasswordAsExpired(string plainText)
+    {        
+        Password password = Password.ShouldCreate(plainText);
+        password.SetNewExpiresAtUtc(DateTime.Now.AddMinutes(-1));
+        Assert.True(DateTime.UtcNow >= password.ExpiresAtUtc);
+    }
 
-    [Fact]
-    public void ShouldFailIfPasswordIsExpired() => Assert.Fail();
+    [Theory]
+    [MemberData(nameof(PasswordTestData.ValidPasswords), MemberType = typeof(PasswordTestData))]
+    public void ShouldFailIfPasswordIsExpired(string plainText)
+    {
+        Password password = Password.ShouldCreate(plainText);
+        password.SetNewExpiresAtUtc(DateTime.Now.AddMinutes(-1));
+        Assert.True(password.IsPasswordExpired());
+    }
 
-    [Fact]
-    public void ShouldMarkPasswordAsMustChange() => Assert.Fail();
+    [Theory]
+    [MemberData(nameof(PasswordTestData.ValidPasswords), MemberType = typeof(PasswordTestData))]
+    public void ShouldMarkPasswordAsMustChange(string plainText) 
+    {
+        Password password = Password.ShouldCreate(plainText);
+        password.SetMustChange();
+        Assert.True(password.MustChange);
+    }
 
-    [Fact]
-    public void ShouldFailIfPasswordIsMarkedAsMustChange() => Assert.Fail();
+    [Theory]
+    [MemberData(nameof(PasswordTestData.ValidPasswords), MemberType = typeof(PasswordTestData))]
+    public void ShouldFailIfPasswordIsMarkedAsMustChange(string plainText) 
+    {
+        Password password = Password.ShouldCreate(plainText);
+        password.SetMustChange();
+        Assert.True(password.MustChange);
+    }
 }
