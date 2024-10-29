@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Balta.Domain.AccountContext.ValueObjects.Exceptions;
+using Balta.Domain.SharedContext.Abstractions;
 using Balta.Domain.SharedContext.ValueObjects;
 
 namespace Balta.Domain.AccountContext.ValueObjects;
@@ -13,8 +14,15 @@ public record Password : ValueObject
     private const int MaxLength = 48;
     private const string Valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
     private const string Special = "!@#$%ˆ&*(){}[];";
-
     #endregion
+
+
+    public class ConcreteDateTimeProvider     {
+        public DateTime GetCurrentDateTime()
+        {
+            return DateTime.Now;
+        }
+    }
 
     #region Constructors
 

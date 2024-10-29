@@ -9,12 +9,12 @@ namespace Balta.Domain.Test.AccountContext.ValueObjects;
 
 public class EmailTests
 {
-    private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
-    private readonly FakeEmailRepository _emailRepository;
     public Email email = null;
+    private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
+    private readonly EmailService emailService;
     public EmailTests()
     {
-        _emailRepository = new FakeEmailRepository();
+        emailService = new EmailService(new FakeEmailRepository());
         _dateTimeProviderMock = new Mock<IDateTimeProvider>();
         _dateTimeProviderMock.Setup(x => x.UtcNow).Returns(DateTime.UtcNow);
     }
@@ -110,23 +110,23 @@ public class EmailTests
     public void ShouldReturnSuccessIfAddValidEmail(string emailAddress)
     {
         email = Email.ShouldCreate(emailAddress, _dateTimeProviderMock.Object);
-        _emailRepository.AddEmail(email.Address);
+        emailService.AddEmail(email);
 
-        string? emailAdded = _emailRepository.Get(email.Address);
+        Email? emailAdded = emailService.Get(email);
         Assert.NotNull(emailAdded);
     }
 
 
     [Theory]
-    [InlineData("emailvalido@hotmail.com")]
+    [MemberData(nameof(EmailTestData.ValidEmails), MemberType = typeof(EmailTestData))]
     public void ShouldReturnFalseWhenTryAddingExistingEmail(string emailAddress)
     {
         email = Email.ShouldCreate(emailAddress, _dateTimeProviderMock.Object);
 
         bool addedAgain = false;
 
-        _emailRepository.AddEmail(email.Address);
-        addedAgain = _emailRepository.AddEmail(email.Address);
+        emailService.AddEmail(email);
+        addedAgain = emailService.AddEmail(email);
 
         Assert.False(addedAgain);
     }

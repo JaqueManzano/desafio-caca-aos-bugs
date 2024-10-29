@@ -1,34 +1,27 @@
-﻿using Balta.Domain.Test.Repository.Interface;
+﻿
+using Balta.Domain.AccountContext.ValueObjects;
+using Balta.Domain.Repository;
 
 namespace Balta.Domain.Test.Repository
 {
-    public class FakeEmailRepository : IFakeEmailRepository
+    public class FakeEmailRepository : IEmailRepository
     {
-        private readonly List<string> _emails = new List<string>();
+        private readonly List<Email> _emails = new List<Email>();
 
-        public bool AddEmail(string email)
+        public void AddEmail(Email email)
         {
-            if (IsEmailNotRegistered(email))
-            {
-                _emails.Add(email);
-                return true;
-            }
-            return false;
+            _emails.Add(email);
         }
 
-        public string? Get(string email)
+        public Email? Get(Email email)
         {
             return _emails.FirstOrDefault(x => x.Equals(email));
         }
 
-        public List<string> GetList()
+        public List<Email> GetList()
         {
             return _emails;
         }
 
-        private bool IsEmailNotRegistered(string email)
-        {
-            return !_emails.Select(x => x.ToLower()).ToList().Contains(email.ToLower());
-        }
     }
 }

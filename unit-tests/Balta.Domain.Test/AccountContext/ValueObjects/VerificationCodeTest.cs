@@ -68,13 +68,14 @@ public class VerificationCodeTest
     public void ShouldFailIfIsNotActive() => Assert.Fail();
 
     [Fact]
-    public void ShouldFailIfIsAlreadyVerified() => Assert.Fail();
-
-    [Fact]
-    public void ShouldFailIfIsVerificationCodeDoesNotMatch()
+    public void ShouldFailIfIsAlreadyVerified()
     {
-
+        VerificationCode verificationCode = VerificationCode.ShouldCreate(_dateTimeProviderMock.Object);
+        verificationCode.ShouldVerify(verificationCode);
+        Assert.Throws<InvalidVerificationCodeException>(() => verificationCode.ShouldVerify(verificationCode));
     }
+    [Fact]
+    public void ShouldFailIfIsVerificationCodeDoesNotMatch() => Assert.Fail();
 
     [Fact]
     public void ShouldVerify()
