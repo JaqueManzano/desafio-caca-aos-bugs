@@ -10,7 +10,7 @@ namespace Balta.Domain.Repository
             throw new NotImplementedException();
         }
 
-        public Email? Get(Email email)
+        public Email? Get(string emailAddress)
         {
             throw new NotImplementedException();
         }

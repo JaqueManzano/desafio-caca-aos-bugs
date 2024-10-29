@@ -26,9 +26,10 @@ public class EmailService
         return _emailRepository.Get(email);
     }
 
-    private bool IsEmailNotRegistered(Email email)
+    private bool IsEmailNotRegistered(Email emailAddress)
     {
-        if (string.IsNullOrEmpty(_emailRepository.Get(email)?.ToString()))
+        Email? register = _emailRepository.Get(emailAddress);
+        if (register is null)
             return true;
         return false;
     }

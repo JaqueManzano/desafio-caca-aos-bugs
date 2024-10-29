@@ -13,9 +13,9 @@ namespace Balta.Domain.Test.Repository
             _emails.Add(email);
         }
 
-        public Email? Get(Email email)
+        public Email? Get(string emailAddress)
         {
-            return _emails.FirstOrDefault(x => x.Equals(email));
+            return  _emails.FirstOrDefault(x => x.Address.Equals(emailAddress));
         }
 
         public List<Email> GetList()
