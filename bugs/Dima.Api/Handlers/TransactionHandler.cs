@@ -5,7 +5,6 @@ using Dima.Core.Handlers;
 using Dima.Core.Models;
 using Dima.Core.Requests.Transactions;
 using Dima.Core.Responses;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dima.Api.Handlers;
@@ -21,7 +20,7 @@ public class TransactionHandler(AppDbContext context) : ITransactionHandler
         {
             var transaction = new Transaction
             {
-                UserId = "test@balta.io",
+                UserId = request.UserId,
                 CategoryId = request.CategoryId,
                 CreatedAt = DateTime.Now,
                 Amount = request.Amount,
@@ -43,7 +42,38 @@ public class TransactionHandler(AppDbContext context) : ITransactionHandler
 
     public async Task<Response<Transaction?>> UpdateAsync(UpdateTransactionRequest request)
     {
-        throw new NotImplementedException();
+        try
+        {
+            Transaction? transaction =  await context.Transactions.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == request.UserId);
+
+            if(transaction is null)
+            {
+                return new Response<Transaction?>(null, 404, "Transação não encontrada");
+            }
+
+            var transactionUpdated = new Transaction
+            {
+                Id = request.Id,
+                UserId = request.UserId,
+                CategoryId = request.CategoryId,
+                CreatedAt = DateTime.Now,
+                Amount = request.Amount,
+                PaidOrReceivedAt = request.PaidOrReceivedAt,
+                Title = request.Title,
+                Type = request.Type
+
+            };
+            
+            context.Update(transactionUpdated);
+            await context.SaveChangesAsync();
+
+            return new Response<Transaction?>(transactionUpdated);
+        }
+        catch (Exception)
+        {
+            return new Response<Transaction?>(null, 500, "Não foi possível atualizar sua transação");
+        }
     }
 
     public async Task<Response<Transaction?>> DeleteAsync(DeleteTransactionRequest request)
@@ -103,12 +133,12 @@ public class TransactionHandler(AppDbContext context) : ITransactionHandler
         {
             var query = context
                 .Transactions
-                .AsNoTracking()
-                .Where(x =>
-                    x.PaidOrReceivedAt >= request.StartDate &&
-                    x.PaidOrReceivedAt <= request.EndDate &&
-                    x.UserId == request.UserId)
-                .OrderBy(x => x.PaidOrReceivedAt);
+                .Include(x => x.Category)
+            .Where(x =>
+                x.PaidOrReceivedAt >= request.StartDate &&
+                x.PaidOrReceivedAt <= request.EndDate &&
+                x.UserId == request.UserId)
+            .OrderBy(x => x.PaidOrReceivedAt);
 
             var transactions = await query
                 .Skip((request.PageNumber - 1) * request.PageSize)
