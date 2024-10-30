@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using Balta.Domain.AccountContext.ValueObjects.Exceptions;
 using Balta.Domain.SharedContext.ValueObjects;
 
@@ -12,8 +13,15 @@ public record Password : ValueObject
     private const int MaxLength = 48;
     private const string Valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
     private const string Special = "!@#$%ˆ&*(){}[];";
-
     #endregion
+
+
+    public class ConcreteDateTimeProvider     {
+        public DateTime GetCurrentDateTime()
+        {
+            return DateTime.Now;
+        }
+    }
 
     #region Constructors
 
@@ -52,28 +60,59 @@ public record Password : ValueObject
     #region Properties
 
     public string Hash { get; }
-    public DateTime? ExpiresAtUtc { get; }
-    public bool MustChange { get; }
+    public DateTime? ExpiresAtUtc { get; private set; }
+    public bool MustChange { get; private set; }
 
     #endregion
 
     #region Public Methods
+    public bool IsPasswordExpired()
+    {
+        return DateTime.UtcNow >= ExpiresAtUtc;
+    }
+
+    public void SetNewExpiresAtUtc(DateTime? dateTime)
+    { 
+        ExpiresAtUtc = dateTime; 
+    }
+
+    public void SetMustChange()
+    {
+        MustChange = true;
+    }
 
     public static string ShouldGenerate(
         short length = 16,
         bool includeSpecialChars = true,
-        bool upperCase = true)
+        bool upperCase = true,
+        bool isStrongPassword = false)
     {
         var chars = includeSpecialChars ? (Valid + Special) : Valid;
         var startRandom = upperCase ? 26 : 0;
         var index = 0;
         var res = new char[length];
         var rnd = new Random();
+        string result = string.Empty;
 
-        while (index < length)
-            res[index++] = chars[rnd.Next(startRandom, chars.Length)];
+        do
+        {
+            if (isStrongPassword)
+            {
+                res[0] = chars[rnd.Next(0, 25)];
+                res[1] = chars[rnd.Next(26, 51)];
+                res[2] = chars[rnd.Next(52, 61)];
+                res[3] = chars[rnd.Next(62, 74)];
+                index = 4;
+            }
 
-        return new string(res);
+            while (index < length)
+                res[index++] = chars[rnd.Next(startRandom, chars.Length)];
+
+            result = new string(res.OrderBy(_ => rnd.Next()).ToArray());
+
+        } while (isStrongPassword && !IsStrongPassword(result));
+
+        return result;
     }
 
     public static bool ShouldMatch(
@@ -106,6 +145,27 @@ public record Password : ValueObject
         return keyToCheck.SequenceEqual(key);
     }
 
+    public static bool IsStrongPassword(string password)
+    {
+        if (string.IsNullOrEmpty(password) || password.Length < 8)
+            return false;
+
+        bool hasUpperCase = password.Any(char.IsUpper);
+        bool hasLowerCase = password.Any(char.IsLower);
+        bool hasDigit = password.Any(char.IsDigit);
+        bool hasSpecialChar = Regex.IsMatch(password, @"[\W_]");
+
+        if (!hasUpperCase || !hasLowerCase || !hasDigit || !hasSpecialChar)
+            return false;
+
+        for (int i = 0; i < password.Length - 1; i++)
+        {
+            if (password[i] + 1 == password[i + 1] || password[i] - 1 == password[i + 1])
+                return false;
+        }
+
+        return true;
+    }
     #endregion
 
     #region Private Methods

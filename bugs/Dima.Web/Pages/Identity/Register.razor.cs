@@ -60,7 +60,12 @@ public partial class RegisterPage : ComponentBase
                 NavigationManager.NavigateTo("/login");
             }
             else
-                Snackbar.Add(result.Message, Severity.Error);
+            {
+                foreach (var message in result.Message.Split(";"))
+                {
+                    Snackbar.Add(message, Severity.Error);
+                }
+            }
         }
         catch (Exception ex)
         {

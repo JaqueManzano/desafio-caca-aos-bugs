@@ -99,5 +99,7 @@ public static class BuilderExtension
         builder
             .Services
             .AddTransient<IReportHandler, ReportHandler>();
+
+        builder.Services.AddHostedService<DatabaseInitializer>();
     }
 }

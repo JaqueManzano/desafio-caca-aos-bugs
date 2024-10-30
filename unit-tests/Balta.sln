@@ -3,17 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Balta.Domain", "Balta.Domain\Balta.Domain.csproj", "{101A8633-2BF8-4F91-B2C6-1978DD60EF76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Balta.Domain", "Balta.Domain\Balta.Domain.csproj", "{101A8633-2BF8-4F91-B2C6-1978DD60EF76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Balta.Domain.Test", "Balta.Domain.Test\Balta.Domain.Test.csproj", "{CD4C113E-4772-4919-B60A-081C5B783221}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Balta.Domain.Test", "Balta.Domain.Test\Balta.Domain.Test.csproj", "{CD4C113E-4772-4919-B60A-081C5B783221}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Balta.Data.Tests", "Balta.Data.Tests\Balta.Data.Tests.csproj", "{5562CB06-A3BF-4B1C-917E-853004895B5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{101A8633-2BF8-4F91-B2C6-1978DD60EF76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -24,5 +23,15 @@ Global
 		{CD4C113E-4772-4919-B60A-081C5B783221}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD4C113E-4772-4919-B60A-081C5B783221}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD4C113E-4772-4919-B60A-081C5B783221}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5562CB06-A3BF-4B1C-917E-853004895B5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5562CB06-A3BF-4B1C-917E-853004895B5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5562CB06-A3BF-4B1C-917E-853004895B5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5562CB06-A3BF-4B1C-917E-853004895B5E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7C141420-F133-4AE3-B05F-08843957ACCF}
 	EndGlobalSection
 EndGlobal

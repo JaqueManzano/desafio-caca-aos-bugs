@@ -35,8 +35,10 @@ public class VerificationCode
     public string Code { get; }
     public DateTime? ExpiresAtUtc { get; private set; }
     public DateTime? VerifiedAtUtc { get; private set; }
-    public bool IsActive => VerifiedAtUtc != null && ExpiresAtUtc is null;
-
+    public bool IsActive => VerifiedAtUtc == null && ExpiresAtUtc is not null;
+    //public bool IsActive => VerifiedAtUtc != null && ExpiresAtUtc is null;
+    //public bool IsActive =>  DateTime.UtcNow <= ExpiresAtUtc;
+    
     #endregion
 
     #region Methods
@@ -57,6 +59,14 @@ public class VerificationCode
         
         VerifiedAtUtc = DateTime.UtcNow;
         ExpiresAtUtc = null;
+    }
+
+    public bool IsExpired()
+    {
+        if (DateTime.UtcNow > ExpiresAtUtc)
+            throw new InvalidVerificationCodeException("Código de verificação expirado.");
+
+        return false;
     }
 
     #endregion
