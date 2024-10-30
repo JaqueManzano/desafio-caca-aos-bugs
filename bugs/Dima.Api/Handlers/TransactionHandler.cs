@@ -29,8 +29,8 @@ public class TransactionHandler(AppDbContext context) : ITransactionHandler
                 Type = request.Type
             };
 
-            context.Transactions.AddAsync(transaction);
-            context.SaveChangesAsync();
+            await context.Transactions.AddAsync(transaction);
+            await context.SaveChangesAsync();
 
             return new Response<Transaction?>(transaction, 201, "Transação criada com sucesso!");
         }
