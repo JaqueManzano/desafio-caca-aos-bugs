@@ -8,80 +8,95 @@ namespace Balta.Domain.Test.AccountContext.ValueObjects;
 public class VerificationCodeTest
 {
     private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
+    private VerificationCode _verificationCode;
 
     public VerificationCodeTest()
     {
         _dateTimeProviderMock = new Mock<IDateTimeProvider>();
         _dateTimeProviderMock.Setup(x => x.UtcNow).Returns(DateTime.UtcNow);
+        _verificationCode = VerificationCode.ShouldCreate(_dateTimeProviderMock.Object);
     }
 
     [Fact]
     public void ShouldGenerateVerificationCode()
-    {
-        VerificationCode verificationCode = VerificationCode.ShouldCreate(_dateTimeProviderMock.Object);
-        Assert.NotNull(verificationCode.Code);
+    {        
+        Assert.NotNull(_verificationCode.Code);
     }
 
     [Fact]
     public void ShouldGenerateExpiresAtInFuture()
-    {
-        VerificationCode verificationCode = VerificationCode.ShouldCreate(_dateTimeProviderMock.Object);
-        Assert.True(verificationCode.ExpiresAtUtc > DateTime.UtcNow);
+    {        
+        Assert.True(_verificationCode.ExpiresAtUtc > DateTime.UtcNow);
     }
 
     [Fact]
     public void ShouldGenerateVerifiedAtAsNull()
-    {
-        VerificationCode verificationCode = VerificationCode.ShouldCreate(_dateTimeProviderMock.Object);
-        Assert.Null(verificationCode.VerifiedAtUtc);
+    {        
+        Assert.Null(_verificationCode.VerifiedAtUtc);
     }
 
     [Fact]
     public void ShouldBeInactiveWhenCreated()
-    {
-        VerificationCode verificationCode = VerificationCode.ShouldCreate(_dateTimeProviderMock.Object);
-        verificationCode.ShouldVerify(verificationCode);
-        Assert.False(verificationCode.IsActive);
+    {        
+        _verificationCode.ShouldVerify(_verificationCode);
+        Assert.False(_verificationCode.IsActive);
     }
 
     [Fact]
     public void ShouldFailIfExpired()
     {
-        VerificationCode verificationCode = VerificationCode.ShouldCreate(_dateTimeProviderMock.Object);
-
         var expiresAtField = typeof(VerificationCode).GetProperty("ExpiresAtUtc");
-        expiresAtField.SetValue(verificationCode, DateTime.UtcNow.AddMinutes(-1));
+        expiresAtField?.SetValue(_verificationCode, DateTime.UtcNow.AddMinutes(-1));
 
-        Assert.Throws<InvalidVerificationCodeException>(() => verificationCode.IsExpired());
+        Assert.Throws<InvalidVerificationCodeException>(() => _verificationCode.IsExpired());
+    }
+
+    [Theory]
+    [MemberData(nameof(VerificationCodeTestData.InvalidCodes), MemberType = typeof(VerificationCodeTestData))]
+    public void ShouldFailIfCodeIsInvalid(string code)
+    {                
+        Assert.Throws<InvalidVerificationCodeException>(() => _verificationCode.ShouldVerify(code));
+    }
+
+    [Theory]
+    [InlineData("test")]
+    public void ShouldFailIfCodeIsLessThanSixChars(string code)
+    {        
+        Assert.Throws<InvalidVerificationCodeException>(() => _verificationCode.ShouldVerify(code));
+    }
+
+    [Theory]
+    [InlineData("test10000")]
+    public void ShouldFailIfCodeIsGreaterThanSixChars(string code)
+    {        
+        Assert.Throws<InvalidVerificationCodeException>(() => _verificationCode.ShouldVerify(code));
     }
 
     [Fact]
-    public void ShouldFailIfCodeIsInvalid() => Assert.Fail();
-
-    [Fact]
-    public void ShouldFailIfCodeIsLessThanSixChars() => Assert.Fail();
-
-    [Fact]
-    public void ShouldFailIfCodeIsGreaterThanSixChars() => Assert.Fail();
-
-    [Fact]
-    public void ShouldFailIfIsNotActive() => Assert.Fail();
+    public void ShouldFailIfIsNotActive()
+    {        
+        _verificationCode.ShouldVerify(_verificationCode);        
+        Assert.Throws<InvalidVerificationCodeException>(() => _verificationCode.ShouldVerify(_verificationCode));
+    }
 
     [Fact]
     public void ShouldFailIfIsAlreadyVerified()
-    {
-        VerificationCode verificationCode = VerificationCode.ShouldCreate(_dateTimeProviderMock.Object);
-        verificationCode.ShouldVerify(verificationCode);
-        Assert.Throws<InvalidVerificationCodeException>(() => verificationCode.ShouldVerify(verificationCode));
+    {        
+        _verificationCode.ShouldVerify(_verificationCode);
+        Assert.Throws<InvalidVerificationCodeException>(() => _verificationCode.ShouldVerify(_verificationCode));
     }
+
     [Fact]
-    public void ShouldFailIfIsVerificationCodeDoesNotMatch() => Assert.Fail();
+    public void ShouldFailIfIsVerificationCodeDoesNotMatch()
+    {
+        string incorrectCode = "fail";                
+        Assert.Throws<InvalidVerificationCodeException>(() => _verificationCode.ShouldVerify(incorrectCode));
+    }
 
     [Fact]
     public void ShouldVerify()
-    {
-        VerificationCode verificationCode = VerificationCode.ShouldCreate(_dateTimeProviderMock.Object);
-        Exception? exception = Record.Exception(() => verificationCode.ShouldVerify(verificationCode.Code));
+    {        
+        Exception? exception = Record.Exception(() => _verificationCode.ShouldVerify(_verificationCode.Code));
         Assert.Null(exception);
     }
 }
