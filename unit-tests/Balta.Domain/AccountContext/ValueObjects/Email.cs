@@ -9,6 +9,7 @@ namespace Balta.Domain.AccountContext.ValueObjects;
 public partial record Email : ValueObject
 {
     #region Constants
+    private readonly IList<string> _emails = new List<string>();
 
     private const string Pattern = @"^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$";
 
@@ -75,4 +76,30 @@ public partial record Email : ValueObject
     private static partial Regex EmailRegex();
 
     #endregion
+
+
+    public bool AddEmail(string email)
+    {
+        if (IsEmailNotRegistered(email))
+        {
+            _emails.Add(email);
+            return true;
+        }
+        return false;
+    }
+
+    public string? Get(string email)
+    {
+        return _emails.FirstOrDefault(x => x.Equals(email));
+    }
+
+    public IList<string> GetList()
+    {
+        return _emails;
+    }
+
+    private bool IsEmailNotRegistered(string email)
+    {
+        return !_emails.Select(x => x.ToLower()).ToList().Contains(email.ToLower());
+    }
 }
