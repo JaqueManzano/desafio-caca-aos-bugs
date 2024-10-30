@@ -58,7 +58,7 @@ public class PasswordTests
     [Fact]
     public void ShouldGenerateStrongPassword()
     {        
-        Password password = Password.ShouldGenerate(upperCase:false);
+        Password password = Password.ShouldGenerate(upperCase:false, isStrongPassword: true);
         Assert.True(Password.IsStrongPassword(password));
     }
 

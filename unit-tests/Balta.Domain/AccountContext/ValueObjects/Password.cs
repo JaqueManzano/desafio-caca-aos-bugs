@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Balta.Domain.AccountContext.ValueObjects.Exceptions;
-using Balta.Domain.SharedContext.Abstractions;
 using Balta.Domain.SharedContext.ValueObjects;
 
 namespace Balta.Domain.AccountContext.ValueObjects;
@@ -85,25 +84,35 @@ public record Password : ValueObject
     public static string ShouldGenerate(
         short length = 16,
         bool includeSpecialChars = true,
-        bool upperCase = true)
+        bool upperCase = true,
+        bool isStrongPassword = false)
     {
         var chars = includeSpecialChars ? (Valid + Special) : Valid;
         var startRandom = upperCase ? 26 : 0;
         var index = 0;
         var res = new char[length];
         var rnd = new Random();
-                
-        if (!upperCase) 
-        {
-            res[0] = chars[rnd.Next(0, 26)];
-            res[1] = chars[rnd.Next(26, 52)];
-            index = 2;
-        }
+        string result = string.Empty;
 
-        while (index < length)
-            res[index++] = chars[rnd.Next(startRandom, chars.Length)];
-                
-        return new string(res.OrderBy(_ => rnd.Next()).ToArray());
+        do
+        {
+            if (isStrongPassword)
+            {
+                res[0] = chars[rnd.Next(0, 25)];
+                res[1] = chars[rnd.Next(26, 51)];
+                res[2] = chars[rnd.Next(52, 61)];
+                res[3] = chars[rnd.Next(62, 74)];
+                index = 4;
+            }
+
+            while (index < length)
+                res[index++] = chars[rnd.Next(startRandom, chars.Length)];
+
+            result = new string(res.OrderBy(_ => rnd.Next()).ToArray());
+
+        } while (isStrongPassword && !IsStrongPassword(result));
+
+        return result;
     }
 
     public static bool ShouldMatch(

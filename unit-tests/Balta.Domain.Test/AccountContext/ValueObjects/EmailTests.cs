@@ -9,9 +9,10 @@ namespace Balta.Domain.Test.AccountContext.ValueObjects;
 
 public class EmailTests
 {
-    public Email email = null;
+    public Email email = null!;
     private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
     private readonly EmailService emailService;
+
     public EmailTests()
     {
         emailService = new EmailService(new FakeEmailRepository());
